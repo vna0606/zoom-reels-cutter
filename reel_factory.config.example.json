@@ -1,0 +1,5 @@
+{
+  "provider": "auto",
+  "claude_model": "opus",
+  "codex_model": null
+}

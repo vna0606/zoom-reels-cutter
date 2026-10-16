@@ -1,0 +1,4 @@
+interface:
+  display_name: "HyperFrames Reel Factory"
+  short_description: "Разработка и проверка эфирных Reels"
+  default_prompt: "Используй $hyperframes-reel-factory, чтобы изменить и проверить HyperFrames-рендер Reel Factory."

@@ -1,0 +1,42 @@
+{
+  "prefix": "lucide",
+  "info": {
+    "name": "Lucide (curated offline subset)",
+    "author": "Lucide Contributors",
+    "license": "ISC",
+    "source": "https://icon-sets.iconify.design/lucide/"
+  },
+  "width": 24,
+  "height": 24,
+  "icons": {
+    "sparkles": {"body": "<path d=\"m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z\"/><path d=\"M5 3v4M3 5h4M19 17v4M17 19h4\"/>"},
+    "lightbulb": {"body": "<path d=\"M9 18h6M10 22h4\"/><path d=\"M8.7 15.2A7 7 0 1 1 15.3 15.2c-.8.6-1.3 1.5-1.3 2.8h-4c0-1.3-.5-2.2-1.3-2.8Z\"/>"},
+    "target": {"body": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><circle cx=\"12\" cy=\"12\" r=\"5\"/><circle cx=\"12\" cy=\"12\" r=\"1\"/>"},
+    "zap": {"body": "<path d=\"M4 14a1 1 0 0 1-.8-1.6l9-11A.5.5 0 0 1 13 2v8h7a1 1 0 0 1 .8 1.6l-9 11A.5.5 0 0 1 11 22v-8Z\"/>"},
+    "quote": {"body": "<path d=\"M3 21c3 0 7-1 7-8V5c0-1.3-.8-2-2-2H5c-1.2 0-2 .7-2 1.9V9c0 1.2.8 2 2 2 1 0 1 0 1 1v1c0 1-1 2-3 2Z\"/><path d=\"M14 21c3 0 7-1 7-8V5c0-1.3-.8-2-2-2h-3c-1.2 0-2 .7-2 1.9V9c0 1.2.8 2 2 2h.1c1 0 .9 0 .9 1v1c0 1-1 2-3 2Z\"/>"},
+    "message-circle": {"body": "<path d=\"M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4Z\"/><path d=\"M8 10h.01M12 10h.01M16 10h.01\"/>"},
+    "users": {"body": "<path d=\"M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2\"/><circle cx=\"9\" cy=\"7\" r=\"4\"/><path d=\"M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8\"/>"},
+    "trending-up": {"body": "<path d=\"m3 17 6-6 4 4 8-8\"/><path d=\"M15 7h6v6\"/>"},
+    "chart-column": {"body": "<path d=\"M3 3v18h18\"/><path d=\"M7 16V9M12 16V5M17 16v-3\"/>"},
+    "gauge": {"body": "<path d=\"M20 14a8 8 0 1 0-16 0\"/><path d=\"M12 14 16 8\"/><path d=\"M4 14h2M18 14h2M6.3 8.3l1.4 1.4M17.7 8.3l-1.4 1.4M12 6V4\"/>"},
+    "percent": {"body": "<path d=\"m19 5-14 14\"/><circle cx=\"6.5\" cy=\"6.5\" r=\"2.5\"/><circle cx=\"17.5\" cy=\"17.5\" r=\"2.5\"/>"},
+    "list-checks": {"body": "<path d=\"m3 5 2 2 4-4M3 12l2 2 4-4M3 19l2 2 4-4M13 6h8M13 13h8M13 20h8\"/>"},
+    "route": {"body": "<circle cx=\"6\" cy=\"19\" r=\"3\"/><path d=\"M9 19h4.5a3.5 3.5 0 0 0 0-7H11a3.5 3.5 0 0 1 0-7h4\"/><circle cx=\"18\" cy=\"5\" r=\"3\"/>"},
+    "layers": {"body": "<path d=\"m12 2 9 5-9 5-9-5Z\"/><path d=\"m3 12 9 5 9-5M3 17l9 5 9-5\"/>"},
+    "check-circle": {"body": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"m8 12 3 3 5-6\"/>"},
+    "scale": {"body": "<path d=\"m16 16 3-8 3 8a5 5 0 0 1-6 0ZM2 16l3-8 3 8a5 5 0 0 1-6 0ZM7 21h10M12 3v18M3 7h18\"/>"},
+    "arrow-left-right": {"body": "<path d=\"M8 3 4 7l4 4M4 7h16M16 21l4-4-4-4M20 17H4\"/>"},
+    "columns": {"body": "<rect x=\"3\" y=\"4\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"M12 4v16\"/>"},
+    "search": {"body": "<circle cx=\"11\" cy=\"11\" r=\"8\"/><path d=\"m21 21-4.3-4.3\"/>"},
+    "clock": {"body": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 7v5l3 2\"/>"},
+    "calendar-days": {"body": "<rect x=\"3\" y=\"5\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"M16 3v4M8 3v4M3 11h18M8 15h.01M12 15h.01M16 15h.01M8 18h.01M12 18h.01\"/>"},
+    "history": {"body": "<path d=\"M3 12a9 9 0 1 0 3-6.7L3 8\"/><path d=\"M3 3v5h5M12 7v5l4 2\"/>"},
+    "workflow": {"body": "<rect x=\"3\" y=\"3\" width=\"6\" height=\"6\" rx=\"1\"/><rect x=\"15\" y=\"15\" width=\"6\" height=\"6\" rx=\"1\"/><path d=\"M9 6h4a3 3 0 0 1 3 3v6M6 9v6a3 3 0 0 0 3 3h6\"/>"},
+    "network": {"body": "<rect x=\"9\" y=\"2\" width=\"6\" height=\"5\" rx=\"1\"/><rect x=\"2\" y=\"17\" width=\"6\" height=\"5\" rx=\"1\"/><rect x=\"16\" y=\"17\" width=\"6\" height=\"5\" rx=\"1\"/><path d=\"M12 7v4M5 17v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2\"/>"},
+    "shapes": {"body": "<rect x=\"3\" y=\"3\" width=\"8\" height=\"8\" rx=\"1\"/><circle cx=\"16.5\" cy=\"16.5\" r=\"4.5\"/><path d=\"m16 3 5 8H11Z\"/>"},
+    "git-branch": {"body": "<line x1=\"6\" y1=\"3\" x2=\"6\" y2=\"15\"/><circle cx=\"18\" cy=\"6\" r=\"3\"/><circle cx=\"6\" cy=\"18\" r=\"3\"/><path d=\"M18 9a9 9 0 0 1-9 9\"/>"},
+    "settings": {"body": "<path d=\"M12.2 2h-.4a2 2 0 0 0-2 2v.2a2 2 0 0 1-1 1.7l-.4.2a2 2 0 0 1-2 0l-.2-.1a2 2 0 0 0-2.7.7l-.2.4a2 2 0 0 0 .7 2.7l.2.1a2 2 0 0 1 1 1.8v.5a2 2 0 0 1-1 1.8l-.2.1a2 2 0 0 0-.7 2.7l.2.4a2 2 0 0 0 2.7.7l.2-.1a2 2 0 0 1 2 0l.4.2a2 2 0 0 1 1 1.7v.2a2 2 0 0 0 2 2h.4a2 2 0 0 0 2-2v-.2a2 2 0 0 1 1-1.7l.4-.2a2 2 0 0 1 2 0l.2.1a2 2 0 0 0 2.7-.7l.2-.4a2 2 0 0 0-.7-2.7l-.2-.1a2 2 0 0 1-1-1.8v-.5a2 2 0 0 1 1-1.8l.2-.1a2 2 0 0 0 .7-2.7l-.2-.4a2 2 0 0 0-2.7-.7l-.2.1a2 2 0 0 1-2 0l-.4-.2a2 2 0 0 1-1-1.7V4a2 2 0 0 0-2-2Z\"/><circle cx=\"12\" cy=\"12\" r=\"3\"/>"},
+    "refresh-cw": {"body": "<path d=\"M20 11a8 8 0 1 0-2.3 5.7L20 14\"/><path d=\"M20 4v7h-7\"/>"},
+    "share-2": {"body": "<circle cx=\"18\" cy=\"5\" r=\"3\"/><circle cx=\"6\" cy=\"12\" r=\"3\"/><circle cx=\"18\" cy=\"19\" r=\"3\"/><path d=\"m8.6 10.5 6.8-4M8.6 13.5l6.8 4\"/>"}
+  }
+}

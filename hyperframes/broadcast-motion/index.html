@@ -1,0 +1,1122 @@
+<!doctype html>
+<html lang="ru" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>Reel Factory · Codex Motion Direction</title>
+    <script src="assets/gsap.min.js"></script>
+    <style>
+      @font-face {
+        font-family: "Broadcast Sans";
+        src: local("Bahnschrift");
+        font-style: normal;
+        font-weight: 300 900;
+      }
+      @font-face {
+        font-family: "Broadcast Serif";
+        src: local("Georgia");
+        font-style: normal italic;
+        font-weight: 400 700;
+      }
+      @font-face {
+        font-family: "Broadcast Mono";
+        src: local("Consolas");
+        font-style: normal;
+        font-weight: 400 700;
+      }
+
+      :root {
+        --bg: #101318;
+        --surface: #171c23;
+        --raised: #1d242d;
+        --fg: #f4f1e8;
+        --muted: #a9b0ba;
+        --accent: #c7f54a;
+        --border: #303844;
+        --soft-line: rgba(169, 176, 186, 0.18);
+      }
+
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      html, body { width: 1080px; height: 1920px; overflow: hidden; }
+      body { color: var(--fg); font-family: "Broadcast Sans", sans-serif; background: var(--bg); }
+
+      #root { position: relative; width: 1080px; height: 1920px; overflow: hidden; }
+      .clip { position: absolute; inset: 0; width: 100%; height: 100%; }
+      .frame-fill { position: absolute; inset: 0; overflow: hidden; background: var(--bg); }
+
+      .grid {
+        position: absolute;
+        inset: -80px;
+        opacity: 0.18;
+        background-image:
+          linear-gradient(rgba(169,176,186,.16) 2px, transparent 2px),
+          linear-gradient(90deg, rgba(169,176,186,.16) 2px, transparent 2px);
+        background-size: 90px 90px;
+        mask-image: linear-gradient(to bottom, #000 0%, #000 66%, transparent 91%);
+      }
+
+      .grain {
+        position: absolute;
+        inset: 0;
+        opacity: 0.11;
+        mix-blend-mode: soft-light;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.78' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.32'/%3E%3C/svg%3E");
+      }
+
+      .halo {
+        position: absolute;
+        width: 820px;
+        height: 820px;
+        right: -390px;
+        top: -310px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(199,245,74,.24) 0%, rgba(199,245,74,.09) 34%, rgba(199,245,74,0) 70%);
+      }
+
+      .edge-code {
+        position: absolute;
+        right: 30px;
+        top: 550px;
+        color: rgba(169,176,186,.28);
+        font-family: "Broadcast Mono", monospace;
+        font-size: 18px;
+        letter-spacing: .18em;
+        writing-mode: vertical-rl;
+      }
+
+      .chrome {
+        position: absolute;
+        z-index: 30;
+        left: 72px;
+        right: 72px;
+        top: 54px;
+        opacity: 0;
+        visibility: hidden;
+      }
+      .chrome-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: var(--muted);
+        font-family: "Broadcast Mono", monospace;
+        font-size: 19px;
+        font-weight: 700;
+        letter-spacing: .12em;
+        text-transform: uppercase;
+      }
+      .chrome-row strong { color: var(--accent); font-weight: 700; }
+      .progress-track { height: 3px; margin-top: 18px; overflow: hidden; background: var(--border); }
+      #progress-fill { width: 100%; height: 100%; background: var(--accent); transform-origin: left center; }
+
+      #scene-mount { position: absolute; z-index: 10; inset: 0; opacity: 0; visibility: hidden; }
+      .scene-layer { position: absolute; inset: 0; opacity: 0; }
+      .scene-inner {
+        position: absolute;
+        top: 142px;
+        left: 72px;
+        right: 72px;
+        height: 1128px;
+        display: grid;
+        grid-template-rows: max-content minmax(0, 1fr);
+        gap: 34px;
+      }
+
+      .scene-copy { position: relative; z-index: 4; min-width: 0; max-width: 910px; }
+      .scene-layer:not(.composition-split-stage) .scene-copy { padding-bottom: 64px; }
+      .scene-meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 25px;
+        color: var(--accent);
+        font-family: "Broadcast Mono", monospace;
+        font-size: 21px;
+        font-weight: 700;
+        letter-spacing: .1em;
+        text-transform: uppercase;
+      }
+      .scene-meta::before { content: ""; width: 48px; height: 4px; margin-right: 16px; background: var(--accent); }
+      .scene-meta .eyebrow { margin-right: auto; }
+      .scene-meta .scene-number { color: var(--muted); }
+      .scene-icon {
+        display: grid;
+        width: 76px;
+        height: 76px;
+        margin-bottom: 24px;
+        place-items: center;
+        border: 2px solid color-mix(in srgb, var(--accent) 72%, transparent);
+        border-radius: 22px;
+        background: color-mix(in srgb, var(--surface) 82%, transparent);
+        color: var(--accent);
+        box-shadow: 0 18px 48px rgba(0, 0, 0, .22);
+      }
+      .scene-icon svg {
+        display: block;
+        width: 42px;
+        height: 42px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.8;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .composition-right-led .scene-icon { margin-left: auto; }
+
+      .headline-mask { display: block; overflow: hidden; }
+      .headline {
+        max-width: 930px;
+        color: var(--fg);
+        font-size: 94px;
+        font-weight: 800;
+        letter-spacing: -.052em;
+        line-height: .93;
+        text-wrap: balance;
+      }
+      .headline .accent { color: var(--accent); }
+      .body-copy {
+        max-width: 780px;
+        margin-top: 28px;
+        color: var(--muted);
+        font-size: 32px;
+        font-weight: 350;
+        line-height: 1.28;
+      }
+
+      .visual-shell { position: relative; width: 100%; min-width: 0; min-height: 520px; align-self: stretch; }
+      .visual-surface { position: absolute; inset: 0; }
+      .catalog-runtime {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+        border-radius: 34px;
+        background: color-mix(in srgb, var(--surface) 84%, transparent);
+        box-shadow: 0 32px 90px rgba(0, 0, 0, .34);
+        isolation: isolate;
+      }
+      .catalog-runtime::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        border-radius: inherit;
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .08);
+        z-index: 4;
+      }
+      .catalog-runtime-host {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%) scale(var(--catalog-scale, .5));
+        transform-origin: center center;
+      }
+      .catalog-runtime-badge {
+        display: none;
+        position: absolute;
+        right: 18px;
+        bottom: 16px;
+        z-index: 5;
+        max-width: 68%;
+        padding: 8px 13px;
+        border-radius: 999px;
+        background: rgba(8, 10, 10, .76);
+        color: var(--accent);
+        font-size: 14px;
+        font-weight: 900;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+      }
+      .ambient-core { position: absolute; inset: 0; }
+
+      .composition-right-led .scene-copy { max-width: 760px; margin-left: auto; text-align: right; }
+      .composition-right-led .scene-meta { justify-content: flex-end; }
+      .composition-right-led .scene-meta::before { order: 2; margin: 0 0 0 16px; }
+      .composition-right-led .scene-meta .eyebrow { margin: 0; }
+      .composition-right-led .scene-meta .scene-number { order: -1; margin-right: auto; }
+      .composition-right-led .body-copy { margin-left: auto; }
+      .composition-full-width .headline { max-width: 940px; font-size: 108px; }
+      .composition-split-stage .scene-inner { top: 190px; height: 1040px; grid-template-columns: minmax(0, .44fr) minmax(0, .56fr); grid-template-rows: 1fr; align-items: center; gap: 42px; }
+      .composition-split-stage .scene-copy, .composition-split-stage .visual-shell { min-width: 0; }
+      .composition-split-stage .headline { font-size: 72px; line-height: .96; }
+      .composition-split-stage .body-copy { font-size: 29px; }
+      .composition-split-stage .visual-shell { min-height: 810px; }
+      .composition-stacked .scene-inner { grid-template-rows: 390px 1fr; }
+      .composition-diagonal .scene-copy { width: 780px; margin-left: 105px; }
+      .composition-diagonal .visual-shell { width: 86%; margin-left: auto; }
+
+      .poster-layout {
+        display: grid;
+        grid-template-columns: 1.18fr .82fr;
+        gap: 22px;
+        align-items: end;
+        padding-top: 72px;
+      }
+      .poster-panel {
+        display: flex;
+        min-width: 0;
+        min-height: 340px;
+        padding: 36px;
+        align-items: flex-end;
+        overflow: hidden;
+        overflow-wrap: anywhere;
+        border: 2px solid var(--border);
+        background: var(--surface);
+        font-size: 61px;
+        font-weight: 800;
+        line-height: .92;
+        letter-spacing: -.04em;
+        text-transform: uppercase;
+      }
+      .layout-safe .scene-inner { grid-template-rows: max-content minmax(0, 1fr); }
+      .layout-safe .scene-copy { padding-bottom: 72px; }
+      .layout-safe .flow-node { min-height: 96px; font-size: 30px; overflow-wrap: anywhere; }
+      .catalog-live .scene-inner {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: max-content minmax(0, 1fr);
+      }
+      .catalog-live .scene-copy {
+        width: 100%;
+        max-width: 100%;
+        padding-bottom: 30px;
+      }
+      .catalog-live .visual-shell { width: 100%; min-height: 680px; }
+      .poster-panel.accent {
+        min-height: 520px;
+        color: var(--bg);
+        border-color: var(--accent);
+        background:
+          linear-gradient(135deg, transparent 0 71%, rgba(16,19,24,.12) 71% 72%, transparent 72%),
+          var(--accent);
+      }
+      .metric-layout { display: grid; grid-template-columns: 1.15fr .85fr; gap: 42px; align-items: end; }
+      .metric-main { align-self: center; }
+      .metric-value {
+        color: var(--fg);
+        font-size: 174px;
+        font-weight: 850;
+        letter-spacing: -.07em;
+        line-height: .86;
+        font-variant-numeric: tabular-nums;
+      }
+      .metric-label { max-width: 580px; margin-top: 26px; color: var(--accent); font-size: 34px; font-weight: 700; line-height: 1.05; }
+      .metric-scale { display: flex; height: 390px; gap: 13px; align-items: end; }
+      .metric-bar { flex: 1; min-width: 22px; background: var(--border); transform-origin: bottom center; }
+      .metric-bar:nth-child(4), .metric-bar:nth-child(5) { background: var(--accent); }
+
+      .split-layout { display: grid; grid-template-columns: 1fr 70px 1fr; gap: 18px; align-items: stretch; }
+      .split-card {
+        min-height: 430px;
+        padding: 35px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        border: 2px solid var(--border);
+        background: var(--surface);
+      }
+      .split-card.accent { border-color: var(--accent); }
+      .split-label { color: var(--muted); font-family: "Broadcast Mono", monospace; font-size: 20px; text-transform: uppercase; }
+      .split-value { font-size: 58px; font-weight: 800; line-height: .93; letter-spacing: -.04em; }
+      .split-card.accent .split-value { color: var(--accent); }
+      .split-divider { display: grid; place-items: center; color: var(--accent); font-size: 68px; }
+
+      .flow-layout { display: grid; gap: 15px; align-content: center; }
+      .flow-node {
+        position: relative;
+        min-height: 112px;
+        padding: 25px 30px 25px 92px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        border: 2px solid var(--border);
+        background: var(--surface);
+        font-size: 34px;
+        font-weight: 700;
+      }
+      .flow-node::before {
+        position: absolute;
+        left: 24px;
+        content: attr(data-step);
+        width: 44px;
+        height: 44px;
+        display: grid;
+        place-items: center;
+        color: var(--bg);
+        border-radius: 50%;
+        background: var(--accent);
+        font-family: "Broadcast Mono", monospace;
+        font-size: 19px;
+      }
+      .flow-node small { color: var(--muted); font-family: "Broadcast Mono", monospace; font-size: 18px; font-weight: 400; }
+
+      .network-layout { position: relative; min-height: 560px; }
+      .network-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: hidden; }
+      .network-svg path { fill: none; stroke: var(--border); stroke-width: 4; }
+      .network-center, .network-node {
+        position: absolute;
+        box-sizing: border-box;
+        display: grid;
+        place-items: center;
+        text-align: center;
+        overflow-wrap: anywhere;
+        border: 2px solid var(--border);
+        background: var(--surface);
+        font-weight: 700;
+      }
+      .network-center { left: 27%; top: 33%; width: 46%; height: 34%; padding: 18px; color: var(--bg); border-color: var(--accent); background: var(--accent); font-size: 34px; line-height: .96; }
+      .network-node { width: 38%; min-height: 96px; padding: 14px; color: var(--fg); font-size: 24px; }
+      .network-node.n1 { left: 0; top: 5%; }
+      .network-node.n2 { right: 0; top: 5%; }
+      .network-node.n3 { left: 0; bottom: 5%; }
+      .network-node.n4 { right: 0; bottom: 5%; }
+
+      .quote-layout { min-height: 520px; padding: 25px 20px 25px 160px; display: flex; align-items: center; }
+      .quote-mark { position: absolute; left: 0; top: -30px; color: var(--accent); font-family: "Broadcast Serif", serif; font-size: 300px; line-height: 1; }
+      .quote-text { max-width: 730px; font-family: "Broadcast Serif", serif; font-size: 68px; font-style: italic; font-weight: 700; line-height: 1.04; }
+
+      .ledger-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-content: center; }
+      .ledger-row {
+        min-height: 155px;
+        padding: 26px 28px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        border-top: 3px solid var(--border);
+        background: rgba(23,28,35,.72);
+      }
+      .ledger-row:nth-child(2), .ledger-row:nth-child(3) { border-color: var(--accent); }
+      .ledger-row span { color: var(--muted); font-family: "Broadcast Mono", monospace; font-size: 18px; text-transform: uppercase; }
+      .ledger-row strong { font-size: 37px; line-height: .96; }
+
+      .signal-layout { position: relative; min-height: 540px; overflow: hidden; border-block: 2px solid var(--border); }
+      .signal-axis { position: absolute; left: 0; right: 0; top: 50%; height: 3px; background: var(--border); transform-origin: left center; }
+      .signal-pulse { position: absolute; left: 0; top: 20%; width: 100%; height: 60%; }
+      .signal-pulse path { fill: none; stroke: var(--accent); stroke-width: 9; stroke-linecap: square; stroke-linejoin: bevel; }
+      .signal-label { position: absolute; padding: 14px 18px; color: var(--fg); border: 2px solid var(--border); background: var(--bg); font-family: "Broadcast Mono", monospace; font-size: 21px; }
+      .signal-label.a { left: 6%; top: 13%; }
+      .signal-label.b { right: 5%; bottom: 12%; color: var(--bg); border-color: var(--accent); background: var(--accent); }
+
+      .source-layout { display: grid; grid-template-columns: .3fr .7fr; gap: 25px; align-items: center; perspective: 1200px; }
+      .source-rail { color: var(--muted); font-family: "Broadcast Mono", monospace; font-size: 19px; line-height: 1.5; text-transform: uppercase; }
+      .source-frame-wrap { position: relative; height: 650px; padding: 15px; overflow: hidden; border: 3px solid var(--accent); background: #e8e1d4; box-shadow: 0 38px 80px rgba(0,0,0,.42); }
+      .source-frame { display: block; width: 100%; height: 100%; object-fit: contain; background: var(--bg); }
+      .source-badge { position: absolute; right: 15px; bottom: 15px; padding: 11px 16px; color: var(--bg); background: var(--accent); font-family: "Broadcast Mono", monospace; font-size: 17px; font-weight: 700; text-transform: uppercase; }
+
+      .variant-editorial .headline { font-family: "Broadcast Serif", serif; font-style: italic; font-weight: 700; }
+      .variant-data .headline { max-width: 760px; font-size: 78px; }
+      .variant-source .headline { font-size: 74px; }
+
+      .catalog-atmosphere {
+        position: absolute;
+        z-index: 1;
+        inset: 90px 28px 610px 28px;
+        overflow: hidden;
+        opacity: .7;
+        pointer-events: none;
+      }
+      .catalog-atmosphere::before, .catalog-atmosphere::after {
+        content: "";
+        position: absolute;
+        pointer-events: none;
+      }
+      .scene-layer[data-catalog-tags*="grid"] .catalog-atmosphere::before,
+      .scene-layer[data-catalog-tags*="data"] .catalog-atmosphere::before {
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(199,245,74,.08) 2px, transparent 2px),
+          linear-gradient(90deg, rgba(199,245,74,.08) 2px, transparent 2px);
+        background-size: 76px 76px;
+      }
+      .scene-layer[data-catalog-tags*="grain"] .catalog-atmosphere::after,
+      .scene-layer[data-catalog-tags*="texture"] .catalog-atmosphere::after {
+        inset: 0;
+        opacity: .2;
+        background-image: radial-gradient(circle at center, var(--fg) 0 1.2px, transparent 1.4px);
+        background-size: 11px 11px;
+      }
+      .scene-layer[data-catalog-tags*="light"] .catalog-atmosphere::before,
+      .scene-layer[data-catalog-tags*="shader"] .catalog-atmosphere::before,
+      .scene-layer[data-catalog-tags*="webgl"] .catalog-atmosphere::before {
+        width: 760px;
+        height: 760px;
+        right: -180px;
+        top: 110px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(199,245,74,.22), rgba(199,245,74,0) 68%);
+      }
+      .scene-layer[data-catalog-tags*="handwritten"] .catalog-atmosphere::after {
+        left: 8%;
+        right: 6%;
+        top: 52%;
+        height: 7px;
+        background: var(--accent);
+        transform: rotate(-2deg);
+        transform-origin: left center;
+      }
+
+      .speaker-reserve {
+        position: absolute;
+        z-index: 2;
+        left: 54px;
+        bottom: 144px;
+        width: 520px;
+        height: 420px;
+        border-left: 1px solid rgba(169,176,186,.14);
+        border-bottom: 1px solid rgba(169,176,186,.14);
+        opacity: .35;
+      }
+
+      .hook-card {
+        position: absolute;
+        z-index: 70;
+        inset: 0;
+        overflow: hidden;
+        pointer-events: none;
+        isolation: isolate;
+        opacity: 0;
+        visibility: hidden;
+        background:
+          linear-gradient(155deg, color-mix(in srgb, var(--surface) 92%, #000) 0%, var(--bg) 62%),
+          var(--bg);
+      }
+      .hook-card::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        opacity: .23;
+        background-image:
+          linear-gradient(rgba(169,176,186,.18) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(169,176,186,.18) 1px, transparent 1px);
+        background-size: 72px 72px;
+        mask-image: linear-gradient(to bottom, #000 0%, rgba(0,0,0,.75) 60%, transparent 88%);
+      }
+      .hook-bloom {
+        position: absolute;
+        z-index: 1;
+        width: 1040px;
+        height: 1040px;
+        left: -350px;
+        top: -260px;
+        border-radius: 50%;
+        opacity: 0;
+        background: radial-gradient(circle, color-mix(in srgb, var(--accent) 36%, transparent) 0%, color-mix(in srgb, var(--accent) 13%, transparent) 36%, transparent 70%);
+        will-change: transform, opacity;
+      }
+      .hook-rail {
+        position: absolute;
+        z-index: 2;
+        top: 0;
+        bottom: 0;
+        left: 40px;
+        width: 7px;
+        transform-origin: center top;
+        background: var(--accent);
+        box-shadow: 0 0 34px color-mix(in srgb, var(--accent) 48%, transparent);
+      }
+      .hook-content {
+        position: absolute;
+        z-index: 3;
+        top: 210px;
+        left: 78px;
+        right: 68px;
+        min-height: 820px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        will-change: transform, opacity;
+      }
+      .hook-kicker {
+        display: flex;
+        align-items: center;
+        width: max-content;
+        max-width: 100%;
+        margin-bottom: 36px;
+        padding: 13px 20px 12px;
+        border: 1px solid color-mix(in srgb, var(--accent) 54%, transparent);
+        border-radius: 999px;
+        color: var(--accent);
+        background: color-mix(in srgb, var(--surface) 88%, transparent);
+        font-family: "Broadcast Mono", monospace;
+        font-size: 18px;
+        font-weight: 700;
+        letter-spacing: .14em;
+        line-height: 1;
+        text-transform: uppercase;
+        will-change: transform, opacity;
+      }
+      .hook-kicker::before {
+        content: "";
+        display: block;
+        width: 9px;
+        height: 9px;
+        margin-right: 12px;
+        border-radius: 50%;
+        background: currentColor;
+        box-shadow: 0 0 18px currentColor;
+      }
+      .hook-title {
+        display: block;
+        width: 100%;
+        max-width: 930px;
+        color: var(--fg);
+        font-size: 96px;
+        font-weight: 850;
+        letter-spacing: -.055em;
+        line-height: .93;
+        text-wrap: balance;
+      }
+      .hook-title.size-medium { font-size: 82px; line-height: .95; }
+      .hook-title.size-long { font-size: 68px; line-height: .98; }
+      .hook-title.size-xlong { font-size: 57px; line-height: 1.01; }
+      .hook-word {
+        display: inline-block;
+        margin-right: .19em;
+        opacity: 0;
+        will-change: transform;
+      }
+      .hook-word.is-accent {
+        background-image: linear-gradient(105deg, var(--accent) 0%, var(--fg) 36%, var(--accent) 58%, var(--accent) 100%);
+        background-size: 300% 100%;
+        background-position: 100% 50%;
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      .hook-rule {
+        display: block;
+        width: 100%;
+        height: 5px;
+        margin-top: 46px;
+        transform-origin: left center;
+        background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 12%, transparent));
+        will-change: transform;
+      }
+      .hook-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 22px;
+        color: var(--muted);
+        font-family: "Broadcast Mono", monospace;
+        font-size: 17px;
+        font-weight: 700;
+        letter-spacing: .12em;
+        text-transform: uppercase;
+      }
+      .hook-footer strong { color: var(--accent); }
+    </style>
+    <link id="visual-preset-stylesheet" rel="stylesheet" href="presets/editorial_lime/style.css" />
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="12" data-width="1080" data-height="1920">
+      <section id="motion-stage" class="clip" data-start="0" data-duration="12" data-track-index="1">
+        <div class="frame-fill">
+          <div id="grid" class="grid" data-layout-ignore></div>
+          <div class="grain" data-layout-ignore></div>
+          <div id="halo" class="halo" data-layout-ignore></div>
+          <div class="edge-code" data-layout-ignore>CODEX / HYPERFRAMES / 9:16</div>
+          <div class="speaker-reserve" data-layout-ignore></div>
+          <div id="hook-card" class="hook-card" data-layout-allow-overlap data-layout-allow-occlusion>
+            <div id="hook-bloom" class="hook-bloom" data-layout-ignore></div>
+            <div id="hook-rail" class="hook-rail" data-layout-ignore></div>
+            <div id="hook-content" class="hook-content">
+              <div id="hook-kicker" class="hook-kicker">Тема фрагмента</div>
+              <h1 id="hook-title" class="hook-title" data-layout-allow-overlap data-layout-allow-occlusion></h1>
+              <div id="hook-rule" class="hook-rule" data-layout-ignore></div>
+              <div id="hook-footer" class="hook-footer"><span>Смысл эфира</span><strong>Смотреть →</strong></div>
+            </div>
+          </div>
+          <header class="chrome">
+            <div class="chrome-row"><span>СМЫСЛ ЭФИРА · MOTION NOTE</span><strong id="scene-index">01 / 01</strong></div>
+            <div class="progress-track"><div id="progress-fill"></div></div>
+          </header>
+          <div id="scene-mount"></div>
+        </div>
+      </section>
+    </div>
+
+    <script id="motion-plan" type="application/json">
+      {
+        "version": 3,
+        "caption_style": "caption-editorial-emphasis",
+        "duration": 12,
+        "scenes": [
+          {
+            "id": "s001", "start": 0, "end": 4, "kind": "statement",
+            "eyebrow": "Личный опыт", "headline": "Рынок менялся быстрее ожиданий",
+            "body": "Один тезис становится одним самостоятельным журнальным кадром.",
+            "primary": "Опыт", "secondary": "Рынок", "items": [],
+            "visual_variant": "poster", "composition": "left-led", "motion_recipe": "impact",
+            "accent_word": "быстрее", "visual_concept": "Два смысловых блока сталкиваются", "use_source_frame": false
+          },
+          {
+            "id": "s002", "start": 4, "end": 8, "kind": "process",
+            "eyebrow": "Механика", "headline": "Проект проходит через цепочку",
+            "body": "Схема показывает отношения, а не украшает речь.",
+            "primary": "Проект", "secondary": "Результат", "items": ["Запрос", "Команда", "Работа", "Результат"],
+            "visual_variant": "flow", "composition": "split-stage", "motion_recipe": "cascade",
+            "accent_word": "цепочку", "visual_concept": "Последовательный путь", "use_source_frame": false
+          },
+          {
+            "id": "s003", "start": 8, "end": 12, "kind": "stat",
+            "eyebrow": "Контраст", "headline": "Цифра получает контекст",
+            "body": "Значение показывается только вместе с единицей и смыслом.",
+            "primary": "4 500 €", "secondary": "подтверждённый пример", "items": [],
+            "visual_variant": "data", "composition": "full-width", "motion_recipe": "counter",
+            "accent_word": "контекст", "visual_concept": "Число и шкала", "use_source_frame": false
+          }
+        ]
+      }
+    </script>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const plan = JSON.parse(document.getElementById("motion-plan").textContent);
+      const compositionDuration = Number(plan.duration) || 12;
+      const hookDuration = Math.min(
+        compositionDuration,
+        Math.max(.6, Number(plan.hook_duration) || 2.35),
+      );
+      const scenes = Array.isArray(plan.scenes) ? plan.scenes : [];
+      const root = document.getElementById("root");
+      const stage = document.getElementById("motion-stage");
+      const mount = document.getElementById("scene-mount");
+      root.dataset.duration = String(compositionDuration);
+      stage.dataset.duration = String(compositionDuration);
+
+      const text = (value, fallback = "") => String(value || fallback).trim();
+      const make = (tag, className, value) => {
+        const element = document.createElement(tag);
+        if (className) element.className = className;
+        if (value !== undefined) element.textContent = text(value);
+        return element;
+      };
+      const makeSvg = (className, viewBox = "0 0 900 560") => {
+        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svg.setAttribute("class", className);
+        svg.setAttribute("viewBox", viewBox);
+        return svg;
+      };
+      const addPath = (svg, data) => {
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("d", data);
+        svg.appendChild(path);
+        return path;
+      };
+      const addHeadline = (element, headline, accentWord) => {
+        const full = text(headline, "Ключевой тезис");
+        const accent = text(accentWord);
+        const index = accent ? full.toLocaleLowerCase("ru-RU").indexOf(accent.toLocaleLowerCase("ru-RU")) : -1;
+        if (index < 0) {
+          element.textContent = full;
+          return;
+        }
+        element.append(document.createTextNode(full.slice(0, index)));
+        element.append(make("span", "accent", full.slice(index, index + accent.length)));
+        element.append(document.createTextNode(full.slice(index + accent.length)));
+      };
+      const sceneItems = (scene) => {
+        const values = Array.isArray(scene.items) ? scene.items.map(value => text(value)).filter(Boolean) : [];
+        return (values.length ? values : [text(scene.primary, "Тезис"), text(scene.secondary, "Вывод")]).slice(0, 4);
+      };
+      const safeToken = (value, allowed, fallback) => allowed.includes(text(value)) ? text(value) : fallback;
+      const buildSceneIcon = (scene) => {
+        const body = text(scene && scene.catalog_icon_svg);
+        if (!body) return null;
+        const wrapper = make("div", "scene-icon");
+        wrapper.dataset.catalogIcon = text(scene.catalog_icon, "icon");
+        wrapper.setAttribute("data-layout-ignore", "");
+        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svg.setAttribute("viewBox", "0 0 24 24");
+        svg.setAttribute("aria-hidden", "true");
+        svg.innerHTML = body;
+        wrapper.appendChild(svg);
+        return wrapper;
+      };
+      const fitPosterPanel = (element) => {
+        const value = text(element.textContent);
+        const longestWord = value.split(/\s+/).reduce((longest, word) => Math.max(longest, word.length), 0);
+        if (value.length > 42 || longestWord > 11) element.style.fontSize = "36px";
+        else if (value.length > 28 || longestWord > 9) element.style.fontSize = "42px";
+        else if (value.length > 20) element.style.fontSize = "50px";
+        return element;
+      };
+
+      const hookCard = document.getElementById("hook-card");
+      const hookTitle = document.getElementById("hook-title");
+      const hookTitleText = text(plan.hook_title, text(scenes[0] && scenes[0].headline, "Ключевой момент эфира"));
+      const hookTitleWords = hookTitleText.split(/\s+/).filter(Boolean);
+      const longestHookWord = hookTitleWords.reduce((longest, word) => Math.max(longest, word.length), 0);
+      if (hookTitleText.length > 92 || longestHookWord > 18) hookTitle.classList.add("size-xlong");
+      else if (hookTitleText.length > 62 || longestHookWord > 14) hookTitle.classList.add("size-long");
+      else if (hookTitleText.length > 36 || longestHookWord > 11) hookTitle.classList.add("size-medium");
+      const accentWordCount = hookTitleWords.length > 2 && hookTitleWords.at(-2).length > 3 ? 2 : 1;
+      hookTitleWords.forEach((word, index) => {
+        const node = make("span", "hook-word", word);
+        if (index >= hookTitleWords.length - accentWordCount) node.classList.add("is-accent");
+        hookTitle.appendChild(node);
+      });
+
+      const buildCatalogVisual = (scene, sceneIndex) => {
+        const runtime = scene && scene.catalog_runtime && typeof scene.catalog_runtime === "object"
+          ? scene.catalog_runtime : null;
+        if (!runtime || !text(runtime.src) || !text(runtime.composition_id)) return null;
+        const width = Math.max(320, Number(runtime.width) || 1920);
+        const height = Math.max(320, Number(runtime.height) || 1080);
+        const availableWidth = 880;
+        const availableHeight = 600;
+        const scale = Math.min(availableWidth / width, availableHeight / height);
+        const duration = Math.max(.8, Number(scene.end) - Number(scene.start));
+        const layout = make("div", "visual-surface catalog-runtime");
+        layout.dataset.catalogRuntime = text(runtime.name, runtime.composition_id);
+        const host = make("div", "catalog-runtime-host");
+        host.id = `catalog-host-${String(scene.id || sceneIndex + 1).replace(/[^a-zA-Z0-9_-]/g, "-")}`;
+        host.setAttribute("data-composition-id", text(runtime.composition_id));
+        host.setAttribute("data-composition-src", text(runtime.src));
+        host.setAttribute("data-start", String(Math.max(0, Number(scene.start) || 0)));
+        host.setAttribute("data-duration", String(duration));
+        host.setAttribute("data-track-index", String(20 + sceneIndex));
+        host.setAttribute("data-width", String(width));
+        host.setAttribute("data-height", String(height));
+        host.setAttribute("data-variable-values", JSON.stringify(runtime.variables || {}));
+        host.style.width = `${width}px`;
+        host.style.height = `${height}px`;
+        host.style.setProperty("--catalog-scale", String(scale));
+        const badge = make("div", "catalog-runtime-badge", text(runtime.name).replace(/-/g, " "));
+        badge.setAttribute("data-layout-ignore", "");
+        layout.append(host, badge);
+        return layout;
+      };
+
+      const buildVisual = (scene, sceneIndex) => {
+        const catalogVisual = buildCatalogVisual(scene, sceneIndex);
+        if (catalogVisual) return catalogVisual;
+        const variant = text(scene.source_frame) ? "source" : safeToken(
+          scene.visual_variant,
+          ["poster", "editorial", "data", "split", "flow", "radial", "ledger", "signal", "source"],
+          "poster",
+        );
+        const items = sceneItems(scene);
+
+        if (variant === "source" && scene.source_frame) {
+          const layout = make("div", "visual-surface source-layout");
+          const rail = make("div", "source-rail", "ПОДТВЕРЖДЕНИЕ ИЗ ИСХОДНОГО ЭФИРА");
+          const wrap = make("div", "source-frame-wrap");
+          const image = make("img", "source-frame");
+          image.src = text(scene.source_frame);
+          image.alt = "";
+          wrap.append(image, make("div", "source-badge", "Кадр из эфира"));
+          layout.append(rail, wrap);
+          return layout;
+        }
+
+        if (variant === "data" || text(scene.kind) === "stat") {
+          const layout = make("div", "visual-surface metric-layout");
+          const main = make("div", "metric-main");
+          const metric = make("div", "metric-value", scene.primary || scene.headline);
+          metric.dataset.metric = text(scene.primary || scene.headline);
+          if (metric.textContent.length > 13) metric.style.fontSize = "118px";
+          main.append(metric, make("div", "metric-label", scene.secondary || scene.body));
+          const scale = make("div", "metric-scale");
+          [31, 45, 58, 76, 96].forEach(height => {
+            const bar = make("div", "metric-bar");
+            bar.style.height = `${height}%`;
+            scale.appendChild(bar);
+          });
+          layout.append(main, scale);
+          return layout;
+        }
+
+        if (variant === "split" || text(scene.kind) === "comparison") {
+          const layout = make("div", "visual-surface split-layout");
+          const left = make("div", "split-card");
+          left.append(make("div", "split-label", items[0] || "Первое"), make("div", "split-value", scene.primary));
+          const right = make("div", "split-card accent");
+          right.append(make("div", "split-label", items[1] || "Второе"), make("div", "split-value", scene.secondary));
+          layout.append(left, make("div", "split-divider", "↔"), right);
+          return layout;
+        }
+
+        if (variant === "flow" || ["steps", "process", "timeline"].includes(text(scene.kind))) {
+          const layout = make("div", "visual-surface flow-layout");
+          items.forEach((value, index) => {
+            const node = make("div", "flow-node", value);
+            node.dataset.step = String(index + 1).padStart(2, "0");
+            if (index === items.length - 1 && scene.secondary) node.append(make("small", "", scene.secondary));
+            layout.appendChild(node);
+          });
+          return layout;
+        }
+
+        if (variant === "radial" || ["diagram", "network"].includes(text(scene.kind))) {
+          const layout = make("div", "visual-surface network-layout");
+          const svg = makeSvg("network-svg", "0 0 100 100");
+          addPath(svg, "M 50 48 L 19 15 M 50 48 L 81 15 M 50 48 L 19 85 M 50 48 L 81 85");
+          const center = make("div", "network-center", scene.primary || scene.headline);
+          if (center.textContent.length > 20) center.style.fontSize = "29px";
+          if (center.textContent.length > 36) center.style.fontSize = "24px";
+          layout.append(svg, center);
+          items.forEach((value, index) => {
+            const node = make("div", `network-node n${index + 1}`, value);
+            if (node.textContent.length > 16) node.style.fontSize = "21px";
+            layout.appendChild(node);
+          });
+          return layout;
+        }
+
+        if (variant === "ledger") {
+          const layout = make("div", "visual-surface ledger-layout");
+          items.forEach((value, index) => {
+            const row = make("div", "ledger-row");
+            row.append(make("span", "", `${String(index + 1).padStart(2, "0")} / ФАКТ`), make("strong", "", value));
+            layout.appendChild(row);
+          });
+          return layout;
+        }
+
+        if (variant === "signal") {
+          const layout = make("div", "visual-surface signal-layout");
+          const svg = makeSvg("signal-pulse", "0 0 900 330");
+          addPath(svg, "M 0 178 L 120 178 L 180 110 L 245 255 L 330 62 L 415 215 L 500 145 L 585 178 L 900 178");
+          layout.append(make("div", "signal-axis"), svg);
+          layout.append(make("div", "signal-label a", scene.primary || items[0]), make("div", "signal-label b", scene.secondary || items[1]));
+          return layout;
+        }
+
+        if (variant === "editorial" || text(scene.kind) === "quote") {
+          const layout = make("div", "visual-surface quote-layout");
+          layout.append(make("div", "quote-mark", "“"), make("div", "quote-text", scene.primary || scene.body || scene.headline));
+          return layout;
+        }
+
+        const layout = make("div", "visual-surface poster-layout");
+        layout.append(
+          fitPosterPanel(make("div", "poster-panel accent", scene.primary || scene.headline)),
+          fitPosterPanel(make("div", "poster-panel", scene.secondary || scene.body || "Главная мысль")),
+        );
+        return layout;
+      };
+
+      scenes.forEach((scene, index) => {
+        const layer = make("article", "scene-layer");
+        const safeId = text(scene.id, `s${index + 1}`).replace(/[^a-zA-Z0-9_-]/g, "-");
+        const variant = text(scene.source_frame) ? "source" : safeToken(
+          scene.visual_variant,
+          ["poster", "editorial", "data", "split", "flow", "radial", "ledger", "signal", "source"],
+          "poster",
+        );
+        const composition = safeToken(
+          scene.composition,
+          ["left-led", "right-led", "full-width", "split-stage", "stacked", "diagonal"],
+          "left-led",
+        );
+        const motion = safeToken(
+          scene.motion_recipe,
+          ["impact", "cascade", "draw", "counter", "track", "reveal", "editorial"],
+          "reveal",
+        );
+        layer.id = `scene-${safeId}`;
+        layer.classList.add(`variant-${variant}`, `composition-${composition}`, `motion-${motion}`);
+        if (scene._layout_safe) layer.classList.add("layout-safe");
+        if (scene.catalog_runtime && scene.catalog_runtime.src) layer.classList.add("catalog-live");
+        layer.dataset.variant = variant;
+        layer.dataset.motion = motion;
+        layer.dataset.catalogBlock = text(scene.catalog_block, "yt-prism-title");
+        layer.dataset.catalogMotion = text(scene.catalog_motion, "headline-slam");
+        layer.dataset.catalogTransition = text(scene.catalog_transition, "fade-through");
+        layer.dataset.catalogIcon = text(scene.catalog_icon, "");
+        layer.dataset.catalogTags = Array.isArray(scene.catalog_tags)
+          ? scene.catalog_tags.map(value => text(value)).filter(Boolean).join(" ")
+          : "";
+
+        const inner = make("div", "scene-inner");
+        const copy = make("div", "scene-copy");
+        const sceneIcon = buildSceneIcon(scene);
+        if (sceneIcon) copy.appendChild(sceneIcon);
+        const meta = make("div", "scene-meta");
+        meta.append(make("span", "eyebrow", scene.eyebrow || "Ключевой тезис"), make("span", "scene-number", `${String(index + 1).padStart(2, "0")} / ${String(scenes.length).padStart(2, "0")}`));
+        const mask = make("div", "headline-mask");
+        const headline = make("h1", "headline");
+        if (scene.catalog_runtime && scene.catalog_runtime.src) {
+          headline.setAttribute("data-layout-allow-overlap", "");
+        }
+        addHeadline(headline, scene.headline, scene.accent_word);
+        const headlineLength = text(scene.headline).length;
+        if (headlineLength > 60) headline.style.fontSize = "68px";
+        else if (headlineLength > 46) headline.style.fontSize = "78px";
+        else if (headlineLength < 25 && composition === "full-width") headline.style.fontSize = "120px";
+        mask.appendChild(headline);
+        copy.append(meta, mask);
+        if (scene.body) copy.appendChild(make("p", "body-copy", scene.body));
+
+        const visual = make("div", "visual-shell");
+        const ambient = make("div", "ambient-core");
+        ambient.appendChild(buildVisual(scene, index));
+        visual.appendChild(ambient);
+        inner.append(copy, visual);
+        layer.append(make("div", "catalog-atmosphere"), inner);
+        mount.appendChild(layer);
+      });
+
+      const tl = gsap.timeline({ paused: true });
+      const layers = gsap.utils.toArray(".scene-layer");
+      tl.set(layers, { opacity: 0 }, 0);
+      tl.fromTo("#progress-fill", { scaleX: 0 }, { scaleX: 1, duration: compositionDuration, ease: "none" }, 0);
+      tl.fromTo("#grid", { x: -22, y: -14 }, { x: 18, y: 16, duration: compositionDuration, ease: "none" }, 0);
+      tl.fromTo("#halo", { x: -20, y: 0, scale: .96 }, { x: 35, y: 50, scale: 1.08, duration: compositionDuration, ease: "sine.inOut" }, 0);
+
+      const hookWords = gsap.utils.toArray("#hook-title .hook-word");
+      const hookAccentWords = gsap.utils.toArray("#hook-title .hook-word.is-accent");
+      const hookExitAt = Math.max(.48, hookDuration - .32);
+      const hookLag = Math.min(.062, .42 / Math.max(1, hookWords.length));
+      tl.set(hookCard, { autoAlpha: 1 }, 0);
+      tl.fromTo("#hook-rail", { scaleY: 0 }, { scaleY: 1, duration: .42, ease: "power4.out" }, 0);
+      tl.fromTo("#hook-bloom", { opacity: 0, scale: .82 }, { opacity: .3, scale: 1, duration: .72, ease: "power2.out" }, .04);
+      tl.fromTo("#hook-kicker", { x: -50, opacity: 0 }, { x: 0, opacity: 1, duration: .34, ease: "power4.out" }, .07);
+      hookWords.forEach((word, index) => {
+        const at = .16 + index * hookLag;
+        const distance = index === 0 ? 78 : index === hookWords.length - 1 ? 48 : 58;
+        const settle = index === 0 ? .19 : index === hookWords.length - 1 ? .13 : .155;
+        tl.set(word, { opacity: 1, y: distance }, at);
+        tl.to(word, { y: 0, duration: settle, ease: "power4.out" }, at);
+      });
+      tl.fromTo("#hook-rule", { scaleX: 0 }, { scaleX: 1, duration: .48, ease: "power4.out" }, .36);
+      tl.fromTo("#hook-footer", { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: .36, ease: "power3.out" }, .45);
+      if (hookAccentWords.length) {
+        tl.fromTo(hookAccentWords, { backgroundPosition: "100% 50%" }, { backgroundPosition: "0% 50%", duration: Math.max(.7, hookExitAt - .52), ease: "none" }, .52);
+      }
+      tl.to("#hook-content", { y: -58, opacity: 0, duration: .3, ease: "power3.in" }, hookExitAt);
+      tl.to(hookCard, { autoAlpha: 0, duration: .24, ease: "power2.in" }, hookExitAt + .08);
+      tl.set([".chrome", "#scene-mount"], { autoAlpha: 1 }, Math.min(compositionDuration, hookExitAt + .28));
+
+      layers.forEach((layer, index) => {
+        const scene = scenes[index];
+        const start = Math.max(0, Number(scene.start) || 0);
+        const end = Math.max(start + .8, Math.min(compositionDuration, Number(scene.end) || compositionDuration));
+        const exitAt = Math.max(start + .7, end - .28);
+        const copy = layer.querySelector(".scene-copy");
+        const headline = layer.querySelector(".headline");
+        const body = layer.querySelector(".body-copy");
+        const icon = layer.querySelector(".scene-icon");
+        const visual = layer.querySelector(".visual-shell");
+        const ambient = layer.querySelector(".ambient-core");
+        const catalogMotion = layer.dataset.catalogMotion || "";
+        const catalogTransition = layer.dataset.catalogTransition || "fade-through";
+        let motion = layer.dataset.motion || "reveal";
+        if (/count|number|chart|progress|rating/.test(catalogMotion)) motion = "counter";
+        else if (/slam|pop|impact|burst|spring/.test(catalogMotion)) motion = "impact";
+        else if (/draw|path|trace|beam|outline|ink/.test(catalogMotion)) motion = "draw";
+        else if (/stagger|cascade|word|letter|type|text/.test(catalogMotion)) motion = "cascade";
+        else if (/camera|zoom|focus|pan|travel/.test(catalogMotion)) motion = "track";
+        else if (/reveal|wipe|mask|decode|dissolve/.test(catalogMotion)) motion = "reveal";
+
+        tl.set(layer, { opacity: 1 }, start);
+        if (icon) {
+          tl.fromTo(
+            icon,
+            { rotation: index % 2 ? 9 : -9, scale: .72, opacity: 0 },
+            { rotation: 0, scale: 1, opacity: 1, duration: .46, ease: "back.out(1.6)" },
+            start + .06,
+          );
+        }
+        tl.call(() => { document.getElementById("scene-index").textContent = `${String(index + 1).padStart(2, "0")} / ${String(scenes.length).padStart(2, "0")}`; }, [], start);
+
+        if (motion === "impact") {
+          tl.fromTo(copy, { y: 78, scale: .94, opacity: 0 }, { y: 0, scale: 1, opacity: 1, duration: .55, ease: "back.out(1.35)" }, start + .05);
+          tl.fromTo(visual, { x: 145, opacity: 0 }, { x: 0, opacity: 1, duration: .68, ease: "expo.out" }, start + .22);
+        } else if (motion === "cascade") {
+          const copyParts = [layer.querySelector(".scene-meta"), headline, body].filter(Boolean);
+          copyParts.forEach((part, partIndex) => tl.fromTo(part, { y: 48, opacity: 0 }, { y: 0, opacity: 1, duration: .48, ease: "power3.out" }, start + .08 + partIndex * .1));
+          tl.fromTo(visual, { x: 70, opacity: 0 }, { x: 0, opacity: 1, duration: .64, ease: "power4.out" }, start + .25);
+        } else if (motion === "draw") {
+          tl.fromTo(copy, { x: -65, opacity: 0 }, { x: 0, opacity: 1, duration: .58, ease: "expo.out" }, start + .08);
+          tl.fromTo(visual, { opacity: 0 }, { opacity: 1, duration: .42, ease: "sine.out" }, start + .22);
+        } else if (motion === "counter") {
+          tl.fromTo(copy, { y: -45, opacity: 0 }, { y: 0, opacity: 1, duration: .52, ease: "power3.out" }, start + .08);
+          tl.fromTo(visual, { y: 85, opacity: 0 }, { y: 0, opacity: 1, duration: .65, ease: "expo.out" }, start + .2);
+        } else if (motion === "track") {
+          tl.fromTo(copy, { x: 70, opacity: 0 }, { x: 0, opacity: 1, duration: .58, ease: "power3.out" }, start + .08);
+          tl.fromTo(visual, { x: -100, opacity: 0 }, { x: 0, opacity: 1, duration: .72, ease: "power4.out" }, start + .18);
+        } else if (motion === "editorial") {
+          tl.fromTo(copy, { x: 52, opacity: 0 }, { x: 0, opacity: 1, duration: .7, ease: "sine.out" }, start + .08);
+          tl.fromTo(visual, { opacity: 0, scale: .96 }, { opacity: 1, scale: 1, duration: .82, ease: "power2.out" }, start + .2);
+        } else {
+          tl.fromTo(copy, { opacity: 0 }, { opacity: 1, duration: .32, ease: "power1.out" }, start + .06);
+          tl.fromTo(headline, { clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0% 0 0)", duration: .66, ease: "power3.out" }, start + .12);
+          tl.fromTo(visual, { y: 58, opacity: 0 }, { y: 0, opacity: 1, duration: .62, ease: "power3.out" }, start + .25);
+        }
+
+        gsap.utils.toArray(layer.querySelectorAll(".flow-node, .ledger-row, .network-node")).forEach((node, nodeIndex) => {
+          tl.fromTo(node, { x: node.classList.contains("network-node") ? 0 : 55, scale: .9, opacity: 0 }, { x: 0, scale: 1, opacity: 1, duration: .48, ease: "back.out(1.45)" }, start + .36 + nodeIndex * .08);
+        });
+        gsap.utils.toArray(layer.querySelectorAll(".split-card, .poster-panel")).forEach((card, cardIndex) => {
+          const direction = cardIndex % 2 === 0 ? -1 : 1;
+          tl.fromTo(card, { x: 110 * direction, opacity: 0 }, { x: 0, opacity: 1, duration: .62, ease: "power4.out" }, start + .31 + cardIndex * .1);
+        });
+        gsap.utils.toArray(layer.querySelectorAll(".metric-bar")).forEach((bar, barIndex) => {
+          tl.fromTo(bar, { scaleY: 0 }, { scaleY: 1, duration: .56, ease: "power3.out" }, start + .42 + barIndex * .07);
+        });
+        layer.querySelectorAll("svg path").forEach((path, pathIndex) => {
+          const length = path.getTotalLength();
+          path.style.strokeDasharray = `${length}`;
+          path.style.strokeDashoffset = `${length}`;
+          tl.to(path, { strokeDashoffset: 0, duration: .78, ease: "power2.out" }, start + .4 + pathIndex * .12);
+        });
+
+        const metric = layer.querySelector(".metric-value[data-metric]");
+        if (metric && motion === "counter") {
+          const raw = metric.dataset.metric || "";
+          const numberMatch = raw.match(/\d[\d\s.,]*/);
+          if (numberMatch) {
+            const numeric = Number(numberMatch[0].replace(/\s/g, "").replace(",", "."));
+            if (Number.isFinite(numeric)) {
+              const prefix = raw.slice(0, numberMatch.index);
+              const suffix = raw.slice((numberMatch.index || 0) + numberMatch[0].length);
+              const counter = { value: 0 };
+              tl.to(counter, {
+                value: numeric,
+                duration: .85,
+                ease: "power3.out",
+                onUpdate: () => {
+                  const shown = numeric % 1 ? counter.value.toFixed(1).replace(".", ",") : Math.round(counter.value).toLocaleString("ru-RU");
+                  metric.textContent = `${prefix}${shown}${suffix}`;
+                },
+              }, start + .28);
+            }
+          }
+        }
+
+        const ambientStart = Math.min(end - .45, start + 1.05);
+        const ambientDuration = Math.max(.4, exitAt - ambientStart);
+        tl.fromTo(ambient, { x: index % 2 ? -5 : 5, y: 0, rotation: 0 }, { x: index % 2 ? 6 : -6, y: index % 3 ? -5 : 5, rotation: index % 2 ? -.35 : .35, duration: ambientDuration, ease: "sine.inOut" }, ambientStart);
+
+        if (/hard-cut|match-cut/.test(catalogTransition)) {
+          tl.set(layer, { opacity: 0 }, end - .02);
+        } else if (/whip|push|slide|directional|page/.test(catalogTransition)) {
+          const direction = index % 2 ? -1 : 1;
+          tl.to(layer, { x: 150 * direction, opacity: 0, duration: .28, ease: "power4.in" }, exitAt);
+        } else if (/zoom|scale|dolly|parallax/.test(catalogTransition)) {
+          tl.to(layer, { scale: 1.08, opacity: 0, duration: .3, ease: "power3.in" }, exitAt);
+        } else if (/iris|radial|wipe|clip/.test(catalogTransition)) {
+          tl.to(layer, { clipPath: "inset(48% 48% 48% 48%)", opacity: 0, duration: .3, ease: "power3.in" }, exitAt);
+        } else if (/shatter|grid|pixel|halftone|destruction/.test(catalogTransition)) {
+          tl.to(layer, { rotation: index % 2 ? -1.2 : 1.2, scale: .94, opacity: 0, duration: .3, ease: "power2.in" }, exitAt);
+        } else if (/light|flash|burn|leak/.test(catalogTransition)) {
+          tl.to(layer, { scale: 1.025, opacity: 0, duration: .24, ease: "sine.in" }, exitAt);
+        } else if (index % 3 === 0) {
+          tl.to(layer, { y: -34, opacity: 0, duration: .28, ease: "power3.in" }, exitAt);
+        } else if (index % 3 === 1) {
+          tl.to(copy, { x: -70, opacity: 0, duration: .26, ease: "power3.in" }, exitAt);
+          tl.to(visual, { x: 90, opacity: 0, duration: .26, ease: "power3.in" }, exitAt);
+          tl.to(layer, { opacity: 0, duration: .08, ease: "none" }, end - .08);
+        } else {
+          tl.to(layer, { scale: 1.035, opacity: 0, duration: .28, ease: "power3.in" }, exitAt);
+        }
+        tl.set(layer, { opacity: 0 }, end);
+      });
+
+      window.__timelines["main"] = tl;
+      window.dispatchEvent(new CustomEvent("hyperframes-ready"));
+    </script>
+  </body>
+</html>

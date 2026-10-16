@@ -1,0 +1,9 @@
+{
+  "duration": 12,
+  "maxStaticSec": 2,
+  "assertions": [
+    { "kind": "appearsBy", "selector": "#scene-s001", "bySec": 0.5 },
+    { "kind": "staysInFrame", "selector": "#scene-s001 .scene-inner" },
+    { "kind": "keepsMoving", "withinSelector": "#motion-stage" }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "name": "broadcast-motion",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "npx --yes hyperframes@0.8.4 preview",
+    "check": "npx --yes hyperframes@0.8.4 check",
+    "render": "npx --yes hyperframes@0.8.4 render",
+    "publish": "npx --yes hyperframes@0.8.4 publish"
+  },
+  "devDependencies": {
+    "gsap": "3.14.2",
+    "hyperframes": "0.8.4"
+  }
+}

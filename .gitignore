@@ -1,0 +1,17 @@
+.venv/
+.tools/
+workspace/
+results*/
+.secrets/
+.env
+*.log
+__pycache__/
+*.pyc
+node_modules/
+.DS_Store
+.pytest_cache/
+*.zip
+
+# Local LLM provider config (copy from reel_factory.config.example.json)
+reel_factory.config.json
+server.pid

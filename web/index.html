@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#11120f">
+  <title>Reel Factory — подкаст в вертикальный формат</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="grain" aria-hidden="true"></div>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="Reel Factory">
+      <span class="brand-mark">RF</span>
+      <span>REEL FACTORY</span>
+    </a>
+    <nav class="mode-nav" aria-label="Режим работы">
+      <button class="mode-button active" type="button" data-work-mode="podcast" aria-pressed="true">Подкаст</button>
+      <button class="mode-button" type="button" data-work-mode="broadcast" aria-pressed="false">Эфир</button>
+    </nav>
+    <div class="local-badge"><span></span> Локальная обработка</div>
+  </header>
+
+  <main>
+    <div class="podcast-view-nav" id="podcastViewNav">
+      <nav class="view-nav" aria-label="Сценарий подкаста">
+        <button class="view-button active" type="button" data-view="batch" aria-pressed="true">Пачка видео</button>
+        <button class="view-button" type="button" data-view="highlights" aria-pressed="false">Умные нарезки</button>
+      </nav>
+    </div>
+
+    <div id="batchView" class="app-view">
+    <section class="hero">
+      <div class="eyebrow">PODCAST → REELS</div>
+      <h1>Пачка горизонтальных видео.<br><em>Готовые Reels на выходе.</em></h1>
+      <p>Инструмент сам находит спикера, перестраивает общие планы, распознаёт речь и добавляет однословные субтитры.</p>
+    </section>
+
+    <section class="workspace-card" id="uploadSection">
+      <div class="step-heading">
+        <span>01</span>
+        <div><h2>Добавьте исходники</h2><p>MP4, MOV, MKV или WebM · до 30 файлов</p></div>
+      </div>
+
+      <label class="dropzone" id="dropzone" for="fileInput">
+        <input id="fileInput" type="file" accept="video/mp4,video/quicktime,video/x-matroska,video/webm,.m4v" multiple hidden>
+        <span class="drop-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M12 16V4m0 0L7 9m5-5 5 5M5 14v5h14v-5"/></svg>
+        </span>
+        <strong>Перетащите видео сюда</strong>
+        <span>или нажмите, чтобы выбрать файлы</span>
+      </label>
+
+      <div class="file-list" id="fileList" aria-live="polite"></div>
+
+      <div class="settings" id="settings">
+        <div class="setting-group setting-wide">
+          <label class="setting-label">Стиль субтитров</label>
+          <div class="style-grid">
+            <label class="style-option">
+              <input type="radio" name="subtitleStyle" value="pill" checked>
+              <span class="style-preview pill-preview">СЛОВО</span>
+              <span><b>Плашка</b><small>Контрастно и аккуратно</small></span>
+            </label>
+            <label class="style-option">
+              <input type="radio" name="subtitleStyle" value="clean">
+              <span class="style-preview clean-preview">СЛОВО</span>
+              <span><b>Контур</b><small>Чисто, без фона</small></span>
+            </label>
+            <label class="style-option">
+              <input type="radio" name="subtitleStyle" value="yellow">
+              <span class="style-preview yellow-preview">СЛОВО</span>
+              <span><b>Акцент</b><small>Жёлтый social-style</small></span>
+            </label>
+          </div>
+        </div>
+        <label class="setting-group">
+          <span class="setting-label">Язык речи</span>
+          <select id="language">
+            <option value="ru">Русский</option>
+            <option value="en">English</option>
+            <option value="auto">Определить автоматически</option>
+          </select>
+        </label>
+        <label class="setting-group">
+          <span class="setting-label">Распознавание речи</span>
+          <select id="asrProvider">
+            <option value="auto">Авто: Deepgram, если есть ключ</option>
+            <option value="deepgram">Deepgram (облако)</option>
+            <option value="local">Локально</option>
+          </select>
+          <small class="field-hint">Deepgram быстрее: аудио уходит в облако. Ключ читается из DEEPGRAM_API_KEY или .secrets/deepgram.env.</small>
+        </label>
+        <label class="setting-group">
+          <span class="setting-label">Локальная модель</span>
+          <select id="model">
+            <option value="base">Стандартное · быстрее</option>
+            <option value="small">Точное · больше памяти</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="action-row">
+        <div class="privacy-note">
+          <svg viewBox="0 0 24 24"><path d="M7 10V7a5 5 0 0 1 10 0v3m-11 0h12v10H6z"/></svg>
+          Видео остаются на этом компьютере
+        </div>
+        <button class="primary-button" id="startButton" disabled>
+          <span>Запустить обработку</span>
+          <svg viewBox="0 0 24 24"><path d="M5 12h14m-5-5 5 5-5 5"/></svg>
+        </button>
+      </div>
+      <div class="upload-progress hidden" id="uploadProgress">
+        <div><span>Загрузка файлов</span><b id="uploadPercent">0%</b></div>
+        <progress id="uploadBar" max="100" value="0"></progress>
+      </div>
+      <p class="form-error hidden" id="formError" role="alert"></p>
+    </section>
+
+    <section class="job-section hidden" id="jobSection" aria-live="polite">
+      <div class="job-header">
+        <div>
+          <div class="eyebrow">ТЕКУЩЕЕ ЗАДАНИЕ</div>
+          <h2 id="jobTitle">Обрабатываю видео</h2>
+          <p id="jobMessage">Подготовка...</p>
+        </div>
+        <div class="job-controls">
+          <button class="pause-button hidden" id="jobPauseButton" type="button">Поставить на паузу</button>
+          <a class="secondary-button hidden" id="downloadAll" href="#">
+            Скачать всё ZIP
+            <svg viewBox="0 0 24 24"><path d="M12 4v12m0 0 5-5m-5 5-5-5M5 20h14"/></svg>
+          </a>
+        </div>
+      </div>
+      <div class="overall-progress">
+        <div class="progress-meta"><span>Общий прогресс</span><b id="jobPercent">0%</b></div>
+        <progress id="jobBar" max="100" value="0"></progress>
+      </div>
+      <div class="result-grid" id="resultGrid"></div>
+    </section>
+
+    <section class="history-section" id="historySection">
+      <div class="section-heading">
+        <div><div class="eyebrow">ИСТОРИЯ</div><h2>Последние задания</h2></div>
+        <button class="text-button" id="refreshHistory">Обновить</button>
+      </div>
+      <div class="history-list" id="historyList"><p class="empty-state">Готовые задания появятся здесь.</p></div>
+    </section>
+    </div>
+
+    <div id="highlightsView" class="app-view hidden">
+      <section class="hero highlights-hero">
+        <div class="eyebrow" id="highlightHeroEyebrow">LONG VIDEO → SHORTS</div>
+        <h1 id="highlightHeroTitle">Длинный выпуск.<br><em>Серия сильных клипов.</em></h1>
+        <p id="highlightHeroDescription">Загрузите видео или вставьте ссылку YouTube. Инструмент получит субтитры с таймкодами, найдёт лучшие моменты и превратит выбранные фрагменты в вертикальные ролики.</p>
+      </section>
+
+      <section class="workspace-card" id="highlightSourceSection">
+        <div class="step-heading">
+          <span>01</span>
+          <div><h2 id="highlightSourceTitle">Источник и анализ</h2><p id="highlightSourceDescription">Одно длинное видео или публичная ссылка YouTube</p></div>
+        </div>
+
+        <div class="source-switch" id="highlightSourceSwitch" role="tablist" aria-label="Источник видео">
+          <button type="button" class="source-button active" data-source="upload">Загрузить видео</button>
+          <button type="button" class="source-button" data-source="youtube">Ссылка YouTube</button>
+        </div>
+
+        <div id="uploadSourcePane">
+          <label class="dropzone compact-dropzone" id="longDropzone" for="longVideoInput">
+            <input id="longVideoInput" type="file" accept="video/mp4,video/quicktime,video/x-matroska,video/webm,.m4v" hidden>
+            <span class="drop-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M12 16V4m0 0L7 9m5-5 5 5M5 14v5h14v-5"/></svg>
+            </span>
+            <strong id="longFileTitle">Выберите длинное видео</strong>
+            <span id="longFileMeta">MP4, MOV, MKV или WebM</span>
+          </label>
+        </div>
+        <div id="youtubeSourcePane" class="hidden">
+          <label class="url-field">
+            <span class="setting-label">Ссылка на YouTube</span>
+            <input id="youtubeUrl" type="url" inputmode="url" placeholder="https://www.youtube.com/watch?v=…">
+            <small>Будут использованы опубликованные автором или автоматические субтитры. Если их нет — речь распознается локально.</small>
+          </label>
+        </div>
+
+        <aside class="broadcast-layout-preview hidden" id="broadcastLayoutPreview" aria-label="Превью эфирного рилса с полноэкранной motion-графикой">
+          <div class="broadcast-frame" aria-hidden="true">
+            <div class="broadcast-motion-canvas">
+              <span class="broadcast-motion-kicker">ГЛАВНАЯ МЫСЛЬ</span>
+              <strong class="broadcast-motion-title">ИДЕЯ<br><em>СТАНОВИТСЯ</em><br>ВИДИМОЙ</strong>
+              <div class="broadcast-motion-orbit"></div>
+              <div class="broadcast-motion-bars"><i></i><i></i><i></i><i></i></div>
+            </div>
+            <div class="broadcast-speaker-inset">
+              <div class="speaker-avatar"><span></span></div>
+            </div>
+            <div class="broadcast-caption">КЛЮЧЕВАЯ МЫСЛЬ<br>ЭФИРА В СУБТИТРАХ</div>
+          </div>
+          <div class="broadcast-preview-copy">
+            <div class="eyebrow">ШАБЛОН ЭФИРА · 9:16</div>
+            <h3>Графика — на весь экран.<br>Спикер — в кадре.</h3>
+            <p>Каждый тезис превращается в полноэкранную motion-графику. Нативное видео активного спикера остаётся небольшим слева снизу с безопасным отступом, а субтитры располагаются рядом и не перекрывают лицо.</p>
+          </div>
+        </aside>
+
+        <div class="settings highlight-settings">
+          <label class="setting-group">
+            <span class="setting-label">ИИ для анализа и motion-плана</span>
+            <select id="highlightProvider">
+              <option value="auto">ИИ: Авто · рекомендуется</option>
+              <option value="claude">ИИ: Claude</option>
+              <option value="codex">ИИ: Codex</option>
+              <option value="heuristic">Встроенный анализ · без ИИ</option>
+            </select>
+            <small class="field-hint" id="providerHint">Проверяю доступные анализаторы…</small>
+          </label>
+          <label class="setting-group">
+            <span class="setting-label">Минимум, секунд</span>
+            <input id="minDuration" type="number" min="15" max="120" value="30">
+          </label>
+          <label class="setting-group">
+            <span class="setting-label">Максимум, секунд</span>
+            <input id="maxDuration" type="number" min="20" max="180" value="90">
+          </label>
+          <label class="setting-group">
+            <span class="setting-label">Сколько роликов собрать</span>
+            <input id="maxClips" type="number" min="0" max="20" value="0">
+            <small class="field-hint">0 — без ограничения (по умолчанию): ролик остаётся, если мысль в нём цельная, а не по номеру в рейтинге. Число больше нуля оставит только столько лучших.</small>
+          </label>
+          <label class="setting-group setting-check">
+            <span class="setting-label">Режим «все ролики»</span>
+            <span class="check-row"><input id="highlightAllClips" type="checkbox" checked><span>Достать все сильные темы записи</span></span>
+            <small class="field-hint">Каждая тема карты проверяется отдельно; число роликов не ограничено (долго на длинных эфирах).</small>
+          </label>
+          <label class="setting-group">
+            <span class="setting-label">Аудитория эфира</span>
+            <input id="highlightAudience" type="text" value="айтишники: джуны и мидлы, фронтенд/бэкенд, ищущие работу; боли — рынок, найм, HH, собеседования, зарплаты, накрутка опыта">
+            <small class="field-hint">Подсказка редактору, что интересно зрителям; это не фильтр — сильные моменты вне темы тоже берутся. Пустое поле отключает.</small>
+          </label>
+          <label class="setting-group setting-check">
+            <span class="setting-label">Чистка речи</span>
+            <span class="check-row"><input id="highlightTighten" type="checkbox" checked><span>Убирать слова-паразиты и паузы</span></span>
+            <small class="field-hint">Вырезает «э-э», «ну», «как бы», ложные старты и повторы; монтаж остаётся ровным.</small>
+          </label>
+          <label class="setting-group">
+            <span class="setting-label">Язык речи в файле</span>
+            <select id="highlightLanguage">
+              <option value="ru">Русский</option>
+              <option value="en">English</option>
+              <option value="auto">Определить автоматически</option>
+            </select>
+          </label>
+          <label class="setting-group" id="youtubeSubtitleGroup">
+            <span class="setting-label">Субтитры YouTube</span>
+            <select id="youtubeSubtitleLanguage">
+              <option value="ru">Русские</option>
+              <option value="en">English</option>
+              <option value="auto">Автовыбор</option>
+            </select>
+            <small class="field-hint">Скачивается именно выбранная языковая дорожка.</small>
+          </label>
+          <label class="setting-group">
+            <span class="setting-label">Словарь терминов</span>
+            <input id="asrGlossary" type="text" value="ИИ, ИИшка, нейросети, фулстек, бэкенд, фронтенд, сеньор, мидл, джун, оффер, собеседование, HR, вакансии, найм, рынок IT">
+            <small class="field-hint">Через запятую. Подсказывает распознаванию написание терминов и имён; пустое поле отключает словарь.</small>
+          </label>
+          <label class="setting-group">
+            <span class="setting-label">Распознавание речи</span>
+            <select id="highlightAsr">
+              <option value="auto">Авто: Deepgram, если есть ключ</option>
+              <option value="deepgram">Deepgram (облако)</option>
+              <option value="local">Локально</option>
+            </select>
+            <small class="field-hint">Deepgram быстрее: аудио уходит в облако. Ключ читается из DEEPGRAM_API_KEY или .secrets/deepgram.env.</small>
+          </label>
+          <label class="setting-group">
+            <span class="setting-label">Локальная модель</span>
+            <select id="highlightModel">
+              <option value="base">Стандартное · быстрее</option>
+              <option value="small">Точное · больше памяти</option>
+            </select>
+            <small class="field-hint">Для русской речи лучше «Точное» (small): точнее слова и паразиты, а по ним идёт монтаж.</small>
+          </label>
+        </div>
+
+        <div class="action-row">
+          <div class="privacy-note" id="highlightPrivacyNote">Субтитры и видео проекта сохраняются локально</div>
+          <button class="primary-button" id="analyzeButton" type="button" disabled>
+            <span id="analyzeButtonLabel">Найти лучшие отрывки</span>
+            <svg viewBox="0 0 24 24"><path d="M5 12h14m-5-5 5 5-5 5"/></svg>
+          </button>
+        </div>
+        <div class="upload-progress hidden" id="highlightUploadProgress">
+          <div><span>Загрузка исходника</span><b id="highlightUploadPercent">0%</b></div>
+          <progress id="highlightUploadBar" max="100" value="0"></progress>
+        </div>
+        <p class="form-error hidden" id="highlightFormError" role="alert"></p>
+      </section>
+
+      <section class="job-section hidden" id="highlightProjectSection" aria-live="polite">
+        <div class="job-header">
+          <div>
+            <div class="project-kicker"><div class="eyebrow" id="highlightProjectEyebrow">ПРОЕКТ НАРЕЗКИ</div><span class="project-mode-badge" id="highlightModeBadge">Подкаст</span></div>
+            <h2 id="highlightProjectTitle">Анализирую выпуск</h2>
+            <p id="highlightProjectMessage">Подготовка…</p>
+          </div>
+          <div class="job-controls">
+            <button class="pause-button hidden" id="highlightPauseButton" type="button">Поставить на паузу</button>
+            <button class="secondary-button hidden" id="highlightRetryAnalysisButton" type="button">Повторить поиск моментов</button>
+            <a class="secondary-button hidden" id="highlightDownloadAll" href="#">Скачать всё ZIP ↓</a>
+          </div>
+        </div>
+        <div class="overall-progress">
+          <div class="progress-meta"><span>Общий прогресс</span><b id="highlightProjectPercent">0%</b></div>
+          <progress id="highlightProjectBar" max="100" value="0"></progress>
+          <div class="analysis-phase-progress hidden" id="highlightPhaseProgress">
+            <div class="phase-progress-heading">
+              <div><span>Текущий этап</span><b id="highlightPhaseTitle">Подготовка</b></div>
+              <strong id="highlightPhasePercent">0%</strong>
+            </div>
+            <progress id="highlightPhaseBar" max="100" value="0"></progress>
+            <div class="phase-progress-details">
+              <span class="hidden" id="highlightPhaseProcessed"></span>
+              <span class="hidden" id="highlightPhaseEta"></span>
+            </div>
+            <ol class="analysis-phase-steps" id="highlightAnalysisSteps" aria-label="Этапы анализа">
+              <li data-analysis-phase="preparing"><i></i><span>Подготовка</span></li>
+              <li data-analysis-phase="transcription"><i></i><span>Транскрибация</span></li>
+              <li data-analysis-phase="analysis"><i></i><span>Поиск моментов</span></li>
+              <li data-analysis-phase="previews"><i></i><span>Превью</span></li>
+            </ol>
+            <ol class="analysis-phase-steps hidden" id="highlightMotionSteps" aria-label="Этапы создания motion-графики">
+              <li data-motion-phase="motion_plan"><i></i><span>Визуальный план</span></li>
+              <li data-motion-phase="motion_composition"><i></i><span>Motion-графика</span></li>
+              <li data-motion-phase="motion_render"><i></i><span>Рендер</span></li>
+              <li data-motion-phase="finalization"><i></i><span>Спикер + субтитры</span></li>
+            </ol>
+          </div>
+        </div>
+        <p class="provider-warning hidden" id="highlightWarning"></p>
+
+        <div class="selection-toolbar hidden" id="selectionToolbar">
+          <div><b>Выберите фрагменты</b><span id="selectionSummary">0 выбрано</span></div>
+          <div class="toolbar-actions">
+            <button class="text-button" id="selectAllClips" type="button">Выбрать все</button>
+            <select id="highlightSubtitleStyle" aria-label="Стиль субтитров">
+              <option value="pill">Субтитры: плашка</option>
+              <option value="clean">Субтитры: контур</option>
+              <option value="yellow">Субтитры: жёлтый акцент</option>
+            </select>
+            <label class="toolbar-speed hidden" id="playbackSpeedGroup">
+              <span>Скорость</span>
+              <select id="highlightPlaybackSpeed" aria-label="Скорость готового ролика">
+                <option value="1">1.00×</option>
+                <option value="1.05">1.05×</option>
+                <option value="1.1">1.10×</option>
+                <option value="1.15">1.15×</option>
+                <option value="1.2">1.20×</option>
+                <option value="1.25">1.25×</option>
+              </select>
+            </label>
+            <label class="toolbar-speed hidden" id="speakerCountGroup">
+              <span>Спикеры</span>
+              <select id="highlightSpeakerCount" aria-label="Количество отображаемых спикеров">
+                <option value="1">1</option>
+                <option value="2" selected>2</option>
+              </select>
+            </label>
+            <label class="toolbar-speed toolbar-preset hidden" id="visualPresetGroup">
+              <span>Визуал</span>
+              <select id="highlightVisualPreset" aria-label="Визуальный пресет ролика">
+                <option value="editorial_lime">Editorial Lime</option>
+                <option value="itbooster">ITBooster</option>
+              </select>
+            </label>
+            <label class="toolbar-check" title="После рендера шеф-редактор смотрит кадры и слушает звук готового ролика, ставит оценки и один раз правит монтаж">
+              <input id="highlightVideoReview" type="checkbox" checked>
+              <span>Шеф-редактор отсматривает готовые ролики</span>
+            </label>
+            <button class="primary-button" id="renderSelectedButton" type="button" disabled><span id="renderSelectedLabel">Сделать вертикальные</span></button>
+          </div>
+        </div>
+        <div class="clips-grid" id="clipsGrid"></div>
+        <details class="rejected-block hidden" id="rejectedBlock">
+          <summary>Не прошли проверку (<span id="rejectedCount">0</span>)</summary>
+          <p class="field-hint">Эти варианты отсеяны редактором или критиком. Причина указана на карточке; любой можно сделать вручную.</p>
+          <div class="clips-grid" id="rejectedGrid"></div>
+        </details>
+      </section>
+
+      <section class="history-section">
+        <div class="section-heading">
+          <div><div class="eyebrow">ИСТОРИЯ</div><h2 id="highlightHistoryTitle">Проекты нарезки</h2></div>
+          <button class="text-button" id="refreshHighlightHistory">Обновить</button>
+        </div>
+        <div class="history-list" id="highlightHistoryList"><p class="empty-state">Проекты появятся здесь.</p></div>
+      </section>
+    </div>
+  </main>
+
+  <footer>
+    <span>REEL FACTORY</span>
+    <span>1080 × 1920 · H.264 · 30 FPS</span>
+  </footer>
+  <script src="/app.js" defer></script>
+</body>
+</html>
